@@ -1,5 +1,7 @@
 package com.example.demo.security;
 
+import static com.example.demo.security.ApplicationUserRole.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,10 +17,10 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 @Configuration
 @EnableWebSecurity
 public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
-	
+
 	private final PasswordEncoder passwordEncoder;
-	
-	@Autowired	
+
+	@Autowired
 	public ApplicationSecurityConfig(PasswordEncoder passwordEncoder) {
 		this.passwordEncoder = passwordEncoder;
 	}
@@ -32,10 +34,13 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	@Bean
 	protected UserDetailsService userDetailsService() {
-		UserDetails laraCroftUser = User.builder().username("laracroft")
-				.password(passwordEncoder.encode("password"))
-				.roles("STUDENT").build();
-		return new InMemoryUserDetailsManager(laraCroftUser);
+		UserDetails laraCroftUser = User.builder().username("laracroft").password(passwordEncoder.encode("password"))
+				.roles(STUDENT.name()).build();
+
+		UserDetails lindaUser = User.builder().username("linda").password(passwordEncoder.encode("password123"))
+				.roles(ADMIN.name()).build();
+
+		return new InMemoryUserDetailsManager(laraCroftUser, lindaUser);
 	}
 
 }
