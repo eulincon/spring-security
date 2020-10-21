@@ -27,8 +27,15 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		http.authorizeRequests().antMatchers("/", "index", "/ccs/*", "/js/*").permitAll().anyRequest().authenticated()
-				.and().httpBasic();
+		http.authorizeRequests()
+			.antMatchers("/", "index", "/ccs/*", "/js/*")
+			.permitAll()
+			.antMatchers("/api/**")
+			.hasRole(STUDENT.name())
+			.anyRequest()
+			.authenticated()
+			.and()
+			.httpBasic();
 	}
 
 	@Override
@@ -40,7 +47,10 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
 		UserDetails lindaUser = User.builder().username("linda").password(passwordEncoder.encode("password123"))
 				.roles(ADMIN.name()).build();
 
-		return new InMemoryUserDetailsManager(laraCroftUser, lindaUser);
+		UserDetails tomUser = User.builder().username("tom").password(passwordEncoder.encode("password123"))
+				.roles(ADMINTRAINEE.name()).build();
+
+		return new InMemoryUserDetailsManager(laraCroftUser, lindaUser, tomUser);
 	}
 
 }
