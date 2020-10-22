@@ -1,10 +1,12 @@
 package com.example.demo.security;
 
+import static com.example.demo.security.ApplicationUserPermition.COURSE_WRITE;
 import static com.example.demo.security.ApplicationUserRole.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -27,28 +29,43 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		http.authorizeRequests()
-			.antMatchers("/", "index", "/ccs/*", "/js/*")
-			.permitAll()
-			.antMatchers("/api/**")
-			.hasRole(STUDENT.name())
-			.anyRequest()
-			.authenticated()
-			.and()
-			.httpBasic();
+		http.csrf().disable() // Will teach us later
+				.authorizeRequests()
+				.antMatchers("/", "index", "/ccs/*", "/js/*").permitAll()
+				.antMatchers("/api/**").hasRole(STUDENT.name())
+				.antMatchers(HttpMethod.DELETE, "management/api/**").hasAuthority(COURSE_WRITE.name())
+				.antMatchers(HttpMethod.POST, "management/api/**").hasAuthority(COURSE_WRITE.name())
+				.antMatchers(HttpMethod.PUT, "management/api/**").hasAuthority(COURSE_WRITE.name())
+				.antMatchers(HttpMethod.GET, "management/api/**").hasAnyAuthority(ADMIN.name(), ADMINTRAINEE.name())
+				.anyRequest()
+				.authenticated()
+				.and()
+				.httpBasic();
 	}
 
 	@Override
 	@Bean
 	protected UserDetailsService userDetailsService() {
-		UserDetails laraCroftUser = User.builder().username("laracroft").password(passwordEncoder.encode("password"))
-				.roles(STUDENT.name()).build();
+		UserDetails laraCroftUser = User.builder()
+				.username("laracroft")
+				.password(passwordEncoder.encode("password"))
+//				.roles(STUDENT.name())
+				.authorities(STUDENT.getGrantedAuthorities())
+				.build();
 
-		UserDetails lindaUser = User.builder().username("linda").password(passwordEncoder.encode("password123"))
-				.roles(ADMIN.name()).build();
+		UserDetails lindaUser = User.builder()
+				.username("linda")
+				.password(passwordEncoder.encode("password123"))
+//				.roles(ADMIN.name())
+				.authorities(ADMIN.getGrantedAuthorities())
+				.build();
 
-		UserDetails tomUser = User.builder().username("tom").password(passwordEncoder.encode("password123"))
-				.roles(ADMINTRAINEE.name()).build();
+		UserDetails tomUser = User.builder()
+				.username("tom")
+				.password(passwordEncoder.encode("password123"))
+//				.roles(ADMINTRAINEE.name())
+				.authorities(ADMINTRAINEE.getGrantedAuthorities())
+				.build();
 
 		return new InMemoryUserDetailsManager(laraCroftUser, lindaUser, tomUser);
 	}
