@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("managment/api/v1/students")
+@RequestMapping("management/api/v1/students")
 public class StudentManagmentController {
 
 	private static final List<Student> STUDENTS = Arrays.asList(new Student(1, "Hames Bond"),
