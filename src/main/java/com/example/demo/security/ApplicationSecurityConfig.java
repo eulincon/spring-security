@@ -2,7 +2,7 @@ package com.example.demo.security;
 
 import static com.example.demo.security.ApplicationUserRole.STUDENT;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -13,10 +13,14 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.example.demo.auth.ApplicationUserService;
+import com.example.demo.jwt.JwtUsernameAndPasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -35,7 +39,13 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
+				.cors()
+				.and()
 				.csrf().disable()
+				.sessionManagement()
+					.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+				.and()
+				.addFilter(new JwtUsernameAndPasswordAuthenticationFilter(authenticationManager()))
 				.authorizeRequests()
 				.antMatchers("/", "index", "/ccs/*", "/js/*").permitAll()
 				.antMatchers("/api/**").hasRole(STUDENT.name())
@@ -44,28 +54,29 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
 //				.antMatchers(HttpMethod.PUT, "management/api/**").hasAuthority(COURSE_WRITE.getPermission())
 //				.antMatchers("management/api/**").hasAnyAuthority(ADMIN.name(), ADMINTRAINEE.name())
 				.anyRequest()
-				.authenticated()
-				.and()
+				.authenticated();
+//				.and()
 //				.httpBasic();
-				.formLogin()
-					.loginPage("/login")
-					.permitAll()
-					.defaultSuccessUrl("/courses", true)
-					.passwordParameter("password")
-					.usernameParameter("username")
-				.and()
-					.rememberMe()
-					.tokenValiditySeconds((int) TimeUnit.DAYS.toSeconds(21))
-					.key("somethingverysecured")
-					.rememberMeParameter("remember-me")
-				.and()
-				.logout()
-					.logoutUrl("/logout")
-					.logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
-					.clearAuthentication(true)
-					.invalidateHttpSession(true)
-					.deleteCookies("JSESSIONID", "remember-me")
-					.logoutSuccessUrl("/login");
+//				.formLogin()
+//					.loginPage("/login")
+//					.permitAll()
+//					.defaultSuccessUrl("/courses", true)
+//					.passwordParameter("password")
+//					.usernameParameter("username")
+//				.and()
+//				.rememberMe()
+//					.tokenValiditySeconds((int) TimeUnit.DAYS.toSeconds(21))
+//					.key("somethingverysecured")
+//					.rememberMeParameter("remember-me")
+//				.and()
+//				.logout()
+//					.logoutUrl("/logout")
+//					.logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
+//					.clearAuthentication(true)
+//					.invalidateHttpSession(true)
+//					.deleteCookies("JSESSIONID", "remember-me")
+//					.logoutSuccessUrl("/login");
+				
 	}
 	
 	@Override
@@ -81,6 +92,16 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
 		provider.setUserDetailsService(applicationUserService);
 		
 		return provider;
+	}
+	
+	@Bean
+	CorsConfigurationSource corsConfigurationource() {
+		final CorsConfiguration configuration = new CorsConfiguration();
+		configuration.setAllowedOrigins(Arrays.asList("*"));
+		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS"));
+		final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/**", configuration);
+		return source;
 	}
 
 //	@Override
